@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<style>
+    #div1{
+        float: left;
+        margin: 0px;
+        width: 30%;
+        border: 2px solid;
+        padding: 10px;
+        height:500 ;
+        border-radius: 10px;
+    }
+    #div2{
+        float: left;
+        margin: 0px;
+        width: 70%;
+        border: 2px solid;
+        padding: 10px;
+        height:500;
+        border-radius: 10px;
+    }
+    #div3{
+        border: 2px solid;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+</style>
+        <script>
+    var idPers='';
+    function SelectPersons(){
+    const query='query{allPeople{ id nume} }';
+    const url="http://localhost:3000/";
+    const opts={
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({query})
+                };
+        
+fetch(url,opts)
+    .then(res=>res.json())
+    .then(
+      data=>{
+          var pDetails=``;
+          data.data.allPeople.forEach(Person => {
+              pDetails+=`<div class="pDetailsDiv"><button class="btn btn-link"  onclick='Details(${Person.id})'>${Person.nume}</button> </div>`;
+             
+          });
+          document.getElementById('div1').innerHTML=pDetails;
+      
+      })
+
+    }
+
+    function Details(varId)
+    {
+        const query=`{allAbonaments(filter:{person_id:${varId}}){id tip_abonament data_expirare tarif_lunar imagine activ}}`;
+        const url="http://localhost:3000/";
+        const opts={
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({query})
+};
+fetch(url,opts)
+    .then(res=>res.json())
+    .then(
+      data=>{
+          var aDetails=``;
+          data.data.allAbonaments.forEach(Ab => {
+              aDetails+=`<div class="aDetailsDiv"><br>Tip abonament: ${Ab.tip_abonament}<br><img height="80" width="80" src=${Ab.imagine}><br>Data expirarii abonamentului: ${Ab.data_expirare}<br> Tarif lunar: ${Ab.tarif_lunar}<br> Activ: ${Ab.activ}<br><button class="btn btn-danger" onclick='RemoveAb(${Ab.id})'>Sterge</button> </div>`;
+              idPers=varId;
+          });
+          document.getElementById('div2').innerHTML=aDetails;
+      })
+    }
+
+    function RemoveAb(removeAb){
+    
+    const query=`mutation{removeAbonament(id:${removeAb})}`;
+     const url="http://localhost:3000/";
+         const opts={
+     method:"POST",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({query})
+ };
+ 
+ fetch(url,opts)
+ .then(res=>res.json())
+ .then(
+     data=>{
+         var raspuns=`<p>Abonamentul cu id-ul ${removeAb} a fost sters! </p>`;
+         document.getElementById('header').innerHTML=raspuns;
+     }
+ )
+ }
+ 
+         function InsertAbonament()
+            {   var ok=1;
+                let idAb=document.getElementById("idAb").value;
+                let tipAb=document.getElementById("tip_abonament").value;
+                let tarif=document.getElementById("tarif").value;
+                let activ = document.querySelector('input[name = option]:checked').value;
+               
+                
+                const query=`mutation{createAbonament(id:${idAb}, tip_abonament:"${tipAb}",data_expirare:"",tarif_lunar:${tarif},imagine:"",activ:${activ},person_id:${idPers}) {id}}`;
+                const url="http://localhost:3000/";
+                const opts={
+                     method:'POST',
+                     headers:{"Content-Type":"application/json"},
+                     body:JSON.stringify({query:query})
+                            };
+                           
+     fetch(url,opts)
+    .then(res=>res.json())
+    .then(
+        data=>{
+            if(idPers!="")
+                {
+                    var raspuns=`Abonamentul a fost inserat!`;
+                    alert(raspuns);
+                }
+            else{
+                var raspuns=`Alege persoana caruia sa ii atribui abonamentul!!`;
+                    alert(raspuns);
+            }
+        }
+    )
+            
+            }
+        </script>
+    </head>
+    <body>
+        <input type="button" class="btn btn-light" onclick="SelectPersons()" value="Afiseaza persoane"/>
+        <br><br>
+        <p  id="header"></p>
+    <div >
+    
+        <div id="div1"  >
+        
+        </div>
+        <div id="div2" ></div>
+    </div>
+    <div id="div3">
+        <form method="POST" action="">
+            <input class="form-control" type="text" id="idAb"placeholder="Id">
+           <input  class="form-control"type="text" id="tip_abonament"placeholder="Abonament">
+            <input  class="form-control"type="text" id="tarif" placeholder="Tarif">
+           <div class="form-check">Activ: <input class="" type="radio" id="activ" name="option" value="true">DA</input>
+           <input type="radio" id="activ" name="option" value="false"> NU</input></div>
+            <input type="button" class="btn btn-info" onmouseover="InsertAbonament()" value="Insereaza">
+        </form> 
+        <div id="insert"></div>
+    </div>
+    </body>
+</html>
